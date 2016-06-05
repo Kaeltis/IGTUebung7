@@ -25,9 +25,13 @@ public class WebserviceSearch {
         return output;
     }
 
-    public static List<String> findAPIs(String search) throws IOException {
+    public static void findAPIs(String search, int limit) throws IOException {
         search = filterStopwords(search, STOPWORDS_US);
-        Document doc = Jsoup.connect("http://www.programmableweb.com/category/all/apis?keyword=" + URLEncoder.encode(search, "UTF-8")).get();
+
+        if (search.isEmpty())
+            return;
+
+        Document doc = Jsoup.connect("http://www.programmableweb.com/category/all/apis?keyword=" + URLEncoder.encode(search, "UTF-8") + "&limit=" + limit).get();
 
         Elements titles = doc.select("td.views-field-title");
 
@@ -44,7 +48,5 @@ public class WebserviceSearch {
             System.out.println("\t" + title.nextElementSibling().text());
             System.out.println("\thttp://www.programmableweb.com" + title.child(0).attr("href") + "\n");
         }
-
-        return null;
     }
 }

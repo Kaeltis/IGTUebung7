@@ -12,8 +12,13 @@ public class Main {
 
     private static boolean DEBUG = false;
 
+    private static boolean SEARCH_SPLIT_NAMES = false;
+    private static int SPLIT_MIN_LENGTH = 3;
+
+    private static int SEARCH_LIMIT_RESULTS = 5;
+
     private static final String SCHEMA_URL = "http://www.omg.org/spec/BPMN/20100501/BPMN20.xsd";
-    private static final String FILE_PATH = "resources/email.bpmn";
+    private static final String FILE_PATH = "resources/pizza.bpmn";
 
     private static final String ATTRIBUTE_NAME = "name";
 
@@ -24,7 +29,60 @@ public class Main {
 
     public static void main(String[] args) {
         // Validate BPMN XML
+        validate();
 
+        // Parse BPMN XML
+        XMLParser xmlParser = new XMLParser(FILE_PATH);
+
+        try {
+            xmlParser.parse();
+        } catch (Exception e) {
+            System.out.println("Error parsing file!");
+            System.out.println(e.getMessage());
+            System.exit(5);
+        }
+
+        List<String> taskList = new ArrayList<>();
+
+        for (String tag :
+                TAG_NAMES) {
+            taskList.addAll(xmlParser.getAttributeContentsByTagName(tag, ATTRIBUTE_NAME));
+        }
+
+        if (SEARCH_SPLIT_NAMES) {
+            taskList = splitTasks(taskList);
+        }
+
+        if (DEBUG)
+            System.out.println(taskList);
+
+        // Find webservices
+
+        for (String task :
+                taskList) {
+            try {
+                WebserviceSearch.findAPIs(task, SEARCH_LIMIT_RESULTS);
+            } catch (IOException e) {
+                System.out.println("Couldn't connect to Webservice List");
+            }
+        }
+    }
+
+    private static List<String> splitTasks(List<String> inputList) {
+        List<String> outputList = new ArrayList<>();
+
+        for (String item :
+                inputList) {
+            for (String part :
+                    item.split(" ")) {
+                if (!outputList.contains(part) && part.length() >= SPLIT_MIN_LENGTH)
+                    outputList.add(part);
+            }
+        }
+        return outputList;
+    }
+
+    private static void validate() {
         XMLValidator xmlValidator = new XMLValidator(SCHEMA_URL, FILE_PATH);
 
         try {
@@ -54,39 +112,6 @@ public class Main {
         } catch (ParserConfigurationException e) {
             System.out.println("ParserConfigurationException: " + e.getMessage());
             System.exit(4);
-        }
-
-        // Parse BPMN XML
-
-        XMLParser xmlParser = new XMLParser(FILE_PATH);
-
-        try {
-            xmlParser.parse();
-        } catch (Exception e) {
-            System.out.println("Error parsing file!");
-            System.out.println(e.getMessage());
-            System.exit(5);
-        }
-
-        List<String> taskList = new ArrayList<>();
-
-        for (String tag :
-                TAG_NAMES) {
-            taskList.addAll(xmlParser.getAttributeContentsByTagName(tag, ATTRIBUTE_NAME));
-        }
-
-        if (DEBUG)
-            System.out.println(taskList);
-
-        // Find webservices
-
-        for (String task :
-                taskList) {
-            try {
-                WebserviceSearch.findAPIs(task);
-            } catch (IOException e) {
-                System.out.println("Couldn't connect to Webservice List");
-            }
         }
     }
 }

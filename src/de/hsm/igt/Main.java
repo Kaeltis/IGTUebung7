@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -12,10 +13,14 @@ public class Main {
     private static boolean DEBUG = false;
 
     private static final String SCHEMA_URL = "http://www.omg.org/spec/BPMN/20100501/BPMN20.xsd";
-    private static final String FILE_PATH = "E:\\pizza.bpmn";
+    private static final String FILE_PATH = "resources/email.bpmn";
 
-    private static final String TAG_NAME = "task";
     private static final String ATTRIBUTE_NAME = "name";
+
+    //Signavio
+    //private static final String[] TAG_NAMES = {"userTask", "task", "serviceTask", "sendTask", "scriptTask", "receiveTask", "manualTask", "choreographyTask"};
+    //BPMN
+    private static final String[] TAG_NAMES = {"semantic:userTask", "semantic:task", "semantic:serviceTask", "semantic:sendTask", "semantic:scriptTask", "semantic:receiveTask", "semantic:manualTask", "semantic:choreographyTask"};
 
     public static void main(String[] args) {
         // Validate BPMN XML
@@ -63,7 +68,13 @@ public class Main {
             System.exit(5);
         }
 
-        List<String> taskList = xmlParser.getAttributeContentsByTagName(TAG_NAME, ATTRIBUTE_NAME);
+        List<String> taskList = new ArrayList<>();
+
+        for (String tag :
+                TAG_NAMES) {
+            taskList.addAll(xmlParser.getAttributeContentsByTagName(tag, ATTRIBUTE_NAME));
+        }
+
         if (DEBUG)
             System.out.println(taskList);
 
